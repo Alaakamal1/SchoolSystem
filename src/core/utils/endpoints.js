@@ -23,4 +23,8 @@ export class Endpoints {
   static teachers = `${Endpoints.baseUrl}/teachers`;
   static students = `${Endpoints.baseUrl}/students`;
   static attendance = `${Endpoints.baseUrl}/attendance`;
+  static classroom = `${Endpoints.baseUrl}/classroom`;
+  static subject = `${Endpoints.baseUrl}/subject`;
+
+
 }

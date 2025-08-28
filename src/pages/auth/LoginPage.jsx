@@ -2,15 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import PrimaryButton from "../../core/components/PrimaryButton";
-import { UseAuth } from "../../core/context/UseAuth";
 import schoolImage from "/school.jpg";
-import PrimaryInput from "../../core/components/PrimaryInput";
+import { apiClient } from "../../core/utils/apiClient";
+import LoginInput from "../../core/components/LoginInput";
 
 const LoginPage = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = UseAuth();
 
   // React Hook Form setup
   const {
@@ -20,20 +19,38 @@ const LoginPage = () => {
   } = useForm({
     mode: "onBlur",
   });
-
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError("");
     try {
-      await login(data);
-      navigate("/");
+      const res = await apiClient.post("/login", data);
+
+      console.log("✅ Full login response:", res.data);
+
+      if (res.data && res.data.status === "success") {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", res.data.user_info.role);
+        localStorage.setItem("user", JSON.stringify(res.data.user_info));
+        console.log("role", res.data.user_info.role);
+        if (res.data.user_info.role === "admin") {
+          navigate("/admin/dashboard");
+        } else if (res.data.user_info.role === "teacher") {
+          navigate("/teacher/dashboard");
+        } else if (res.data.user_info.role === "student") {
+          navigate("/student/dashboard");
+        } else {
+          navigate("/");
+        }
+      } else {
+        throw new Error("Invalid login response format");
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Login failed, try again");
+      console.error("Validation errors:", err.response.data.errors);
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex">
       {/* Left Side Image */}
@@ -62,11 +79,11 @@ const LoginPage = () => {
             )}
 
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              <PrimaryInput
+              <LoginInput
                 label="Email"
                 name="email"
                 type="email"
-                autoComplete="email"
+                // autoComplete="email"
                 required
                 register={register}
                 error={errors.email}
@@ -79,7 +96,7 @@ const LoginPage = () => {
                 }}
               />
 
-              <PrimaryInput
+              <LoginInput
                 label="Password"
                 name="password"
                 type="password"

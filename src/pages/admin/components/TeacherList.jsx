@@ -3,52 +3,45 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { Link } from "react-router";
 import PrimaryTable from "../../../core/components/PrimaryTable";
 import PrimaryTableRow from "../../../core/components/PrimaryTableRow";
-import PrimaryDropDown from "../../../core/components/PrimaryDropDown";
-import PrimaryModal from "../../../core/components/PrimaryModal";
+// import PrimaryDropDown from "../../../core/components/PrimaryDropDown";
+// import PrimaryModal from "../../../core/components/PrimaryModal";
 import Skeleton from "react-loading-skeleton";
 
-const PatientsList = ({
-  patients = [],
+const TeachersList = ({
+  teachers = [],
   statuses = [],
-  deletePatient,
+  deleteteacher,
   changeStatus,
   loading = false,
 }) => {
   const columns = [
     { name: "Name", className: "flex-3" },
-    { name: "Serial Number", className: "flex-2" },
     { name: "Phone", className: "flex-2" },
     { name: "Age", className: "flex-2" },
     { name: "Gender", className: "flex-2" },
-    { name: "Blood Type", className: "flex-2" },
-    { name: "Status", className: "flex-2" },
+    { name: "Subject", className: "flex-2" },
+    { name: "Classes", className: "flex-2" },
     { name: "Actions", className: "flex-1" },
   ];
 
   const genderMapper = { 0: "Male", 1: "Female" };
   const getGender = (gender) => genderMapper[gender] || "Unknown";
 
-  const statusColors = {
-    Expected: "bg-blue-100 text-blue-700 border-blue-300",
-    Arrived: "bg-green-100 text-green-700 border-green-300",
-    Reviewed: "bg-purple-100 text-purple-700 border-purple-300",
-    Admitted: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    "Ready for Discharge": "bg-orange-100 text-orange-700 border-orange-300",
-    Discharged: "bg-gray-100 text-gray-700 border-gray-300",
-    Deceased: "bg-red-100 text-red-700 border-red-300",
-    Inactive: "bg-slate-100 text-slate-700 border-slate-300",
+  const getStatusColor = (label) => {
+    switch (label) {
+      case "Active":
+        return "text-green-600 border-green-600";
+      case "Inactive":
+        return "text-red-600 border-red-600";
+      default:
+        return "text-gray-600 border-gray-400";
+    }
   };
 
-  const getStatusColor = (label) =>
-    statusColors[label] || "bg-gray-100 text-gray-700 border-gray-300";
-
-  const PatientsListSkeleton = ({ rowCount = 8 }) => (
+  const TeachersListSkeleton = ({ rowCount = 8 }) => (
     <>
       {Array.from({ length: rowCount }).map((_, index) => (
-        <PrimaryTableRow
-          key={index}
-          columns={columns.map((c) => c.className)}
-        >
+        <PrimaryTableRow key={index} columns={columns.map((c) => c.className)}>
           <div className="flex items-center gap-2">
             <Skeleton circle width={40} height={40} />
             <Skeleton width={120} height={20} />
@@ -66,49 +59,60 @@ const PatientsList = ({
       <div className="hidden md:block">
         <PrimaryTable columns={columns} classes={"min-h-[85vh]"}>
           {loading ? (
-            <PatientsListSkeleton />
-          ) : patients.length === 0 ? (
+            <TeachersListSkeleton />
+          ) : teachers.length === 0 ? (
             <div className="text-center text-gray-500 py-6">
-              No patients found
+              No Teachers found
             </div>
           ) : (
-            patients.map((patient) => {
-              const currentStatus =
-                statuses.find(
-                  (s) => s.value === (patient.statusId?._id || patient.statusId)
-                ) || null;
+            teachers.map((teacher) => {
+              const currentStatus = statuses.find(
+                (s) => s.value === teacher.status
+              );
 
               return (
                 <PrimaryTableRow
-                  key={patient._id}
+                  key={teacher._id}
                   columns={columns.map((col) => col.className)}
                 >
-                  <Link to={`${patient._id}`}>
+                  {/* Name */}
+                  <Link to={`${teacher._id}`}>
                     <div className="flex items-center gap-2">
                       <img
                         src={
-                          patient.image ||
+                          teacher.image ||
                           "https://placehold.co/48x48?text=No+Image"
                         }
-                        alt={patient.fullName}
+                        alt={teacher.fullName}
                         className="w-10 h-10 rounded-full object-cover"
                       />
                       <p className="text-md font-bold truncate max-w-[180px]">
-                        {patient.fullName}
+                        {teacher.fullName}
                       </p>
                     </div>
                   </Link>
-                  <div>{patient.serialNumber || "N/A"}</div>
-                  <div>{patient.phone || "N/A"}</div>
-                  <div>{patient.age || "N/A"}</div>
-                  <div>{getGender(patient.gender)}</div>
-                  <div>{patient.medicalInfoId?.bloodType || "N/A"}</div>
 
+                  {/* Phone */}
+                  <div>{teacher.phone || "N/A"}</div>
+
+                  {/* Age */}
+                  <div>{teacher.age || "N/A"}</div>
+
+                  {/* Gender */}
+                  <div>{getGender(teacher.gender)}</div>
+
+                  {/* Subject */}
+                  <div>{teacher.subject || "N/A"}</div>
+
+                  {/* Classes */}
+                  <div>{teacher.classes || "N/A"}</div>
+
+                  {/* Status Dropdown */}
                   <PrimaryDropDown
                     text={currentStatus?.label || "N/A"}
                     onSelect={(index) => {
                       const selected = statuses[index];
-                      changeStatus(patient._id, selected.value);
+                      changeStatus(teacher._id, selected.value);
                     }}
                     hasIcon={false}
                     className="flex-1 w-37"
@@ -117,19 +121,20 @@ const PatientsList = ({
                     )}`}
                   >
                     {statuses.map((status, index) => (
-                      <div key={`${patient._id}-${status.value}-${index}`}>
+                      <div key={`${teacher._id}-${status.value}-${index}`}>
                         {status.label}
                       </div>
                     ))}
                   </PrimaryDropDown>
 
+                  {/* Actions */}
                   <div className="flex gap-4 text-lg text-[#4B4D4F]">
-                    <Link to={`/patients/${patient._id}/update`}>
+                    <Link to={`/teachers/${teacher._id}/update`}>
                       <FiEdit className="cursor-pointer" />
                     </Link>
                     <PrimaryModal
-                      title="Are you sure you want to delete this patient?"
-                      onConfirm={() => deletePatient(patient._id)}
+                      title="Are you sure you want to delete this teacher?"
+                      onConfirm={() => deleteteacher(teacher._id)}
                     >
                       <AiOutlineDelete className="cursor-pointer" />
                     </PrimaryModal>
@@ -144,4 +149,4 @@ const PatientsList = ({
   );
 };
 
-export default PatientsList;
+export default TeachersList;

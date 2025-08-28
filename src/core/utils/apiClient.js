@@ -59,7 +59,9 @@ apiClient.interceptors.response.use(
 
       const resp = await refreshToken();
 
-      const access_token = resp?.response?.token;
+      // const access_token = resp?.response?.token;
+      const access_token = resp?.token || resp?.data?.token;
+
 
       if (access_token) {
         addTokenToLocalStorage(access_token);
